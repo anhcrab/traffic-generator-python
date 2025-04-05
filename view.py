@@ -1,29 +1,28 @@
 import threading
 
-import openpyxl
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QHBoxLayout, QPushButton
 
-from Service import Client, Traffic, UserAgent, Proxy
+from service import UserAgent, Proxy, Traffic, Client
 from Storage.Storage import get_all_user_agents, get_all_proxies, get_all_traffic_urls, get_all_internal_links
 
 
-def work(clients):
-    for client in clients:
-        client.start()
+class MainView(QWidget):
 
-
-class List(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        self.name = 'List'
-        self.layout = QHBoxLayout(self)
+
+        self.main_layout = QVBoxLayout(self)
+        self.top_layout = QHBoxLayout()
+        self.bot_layout = QHBoxLayout()
         self.run_traffic_button = QPushButton('Run Traffic')
         self.stop_traffic_button = QPushButton('Stop Traffic')
         self.run_traffic_button.clicked.connect(self.on_start_traffic)
         self.stop_traffic_button.clicked.connect(self.on_stop_traffic)
-        self.layout.addWidget(self.run_traffic_button)
-        self.layout.addWidget(self.stop_traffic_button)
-        self.setLayout(self.layout)
+        self.bot_layout.addWidget(self.run_traffic_button)
+        self.bot_layout.addWidget(self.stop_traffic_button)
+        self.main_layout.addLayout(self.top_layout)
+        self.main_layout.addLayout(self.bot_layout)
+        self.setLayout(self.main_layout)
 
         self.__user_agents = []
         for item in get_all_user_agents():
@@ -70,7 +69,7 @@ class List(QWidget):
             self.__clients.append(client)
             client.setup_driver()
         for i in range(0, 5):
-            if i < 4:
+            if i < 5:
                 self.__clients[i].set_traffics(search_traffics)
             else:
                 self.__clients[i].set_traffics(direct_traffics)
@@ -81,8 +80,9 @@ class List(QWidget):
 
     def on_stop_traffic(self):
         for client in self.__clients:
-            client.join()
             client.stop()
+        for thread in self.__threads:
+            thread.join()
 
     def work(self, client: Client):
         client.start()

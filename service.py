@@ -303,6 +303,8 @@ class Client:
         self.__options.add_argument('--disable-dev-shm-usage')
         self.__options.add_experimental_option("useAutomationExtension", False)
         self.__options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        # self.__options.add_argument("user-data-dir=C:\\Users\\User\AppData\Local\Google\Chrome\\User Data")
+        # self.__options.add_argument('profile-directory=Profile 1')
         self.__options.add_argument(f'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36')
         if len(self.__user_agents) > 0:
             ua = random.choice(self.__user_agents)
@@ -329,6 +331,7 @@ class Client:
             self.__current_proxy = proxy
         self.__options.binary_location = self.__exe_file_location
         self.set_driver(webdriver.Chrome(options=self.__options, seleniumwire_options=seleniumwire_options))
+        self.__driver.maximize_window()
         self.__driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         if self.__languages is not None:
             selenium_stealth.stealth(
@@ -362,14 +365,15 @@ class Client:
         self.log("Starting...")
         while True:
             for traffic in self.get_traffics():
-                # curr = int(traffic.get_current_qty()) if traffic.get_current_qty().isDigit() else 0
-                # req = int(traffic.get_required_qty()) if traffic.get_required_qty().isDigit() else 0
                 if traffic.get_current_qty() < int(traffic.get_required_qty()):
                     self.generate_traffic(traffic)
 
     def stop(self):
-        self.__driver.quit()
-        self.log("Stopped")
+        try:
+            self.__driver.quit()
+            self.log("Stopped")
+        except:
+            self.log("Failed to stop")
 
     def generate_traffic(self, traffic: Traffic):
         if traffic.get_type() == 'Search':
@@ -388,6 +392,8 @@ class Client:
         self.handle_internal_links(traffic)
 
     def __generate_traffic_search(self, traffic: Traffic):
+        self.__driver.get('https://terusvn.com/')
+        self.handle_scroll(traffic)
         self.__driver.get("https://www.google.com")
         # while self.get_status() not in [200, 201, 202, 301, 302] and len(self.__proxies) > 0:
         #     new_proxy = random.choice(self.__proxies)
