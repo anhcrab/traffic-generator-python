@@ -303,7 +303,6 @@ class Client:
         self.__options.add_argument('--disable-dev-shm-usage')
         self.__options.add_experimental_option("useAutomationExtension", False)
         self.__options.add_experimental_option("excludeSwitches", ["enable-automation"])
-
         self.__options.add_argument(f'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36')
         if len(self.__user_agents) > 0:
             ua = random.choice(self.__user_agents)
@@ -361,8 +360,12 @@ class Client:
 
     def start(self):
         self.log("Starting...")
-        for traffic in self.get_traffics():
-            self.generate_traffic(traffic)
+        while True:
+            for traffic in self.get_traffics():
+                # curr = int(traffic.get_current_qty()) if traffic.get_current_qty().isDigit() else 0
+                # req = int(traffic.get_required_qty()) if traffic.get_required_qty().isDigit() else 0
+                if traffic.get_current_qty() < int(traffic.get_required_qty()):
+                    self.generate_traffic(traffic)
 
     def stop(self):
         self.__driver.quit()

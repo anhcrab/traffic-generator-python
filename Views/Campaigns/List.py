@@ -48,25 +48,32 @@ class List(QWidget):
 
     def on_start_traffic(self):
         webs = get_all_traffic_urls()
-        for i in range(0, 1):
+        direct_traffics = []
+        search_traffics = []
+        for web in webs:
+            mobile = False
+            if web['mobile'] is not None:
+                mobile = web['mobile']
+            traffic = Traffic(web['id'], web['url'], mobile, web["type"], web['required_qty'], web['current_qty'])
+            traffic.set_keyword(web['keyword'])
+            traffic.set_internal_links(self.__internal_links)
+            if traffic.get_type() == 'Search':
+                search_traffics.append(traffic)
+            else:
+                direct_traffics.append(traffic)
+        for i in range(0, 5):
             client = Client("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
-            traffics = []
-            for web in webs:
-                mobile = False
-                if web['mobile'] is not None:
-                    mobile = web['mobile']
-                traffic = Traffic(web['id'], web['url'], mobile, web["type"], web['required_qty'], web['current_qty'])
-                traffic.set_keyword(web['keyword'])
-                traffic.set_internal_links(self.__internal_links)
-                traffics.append(traffic)
-            client.set_traffics(traffics)
-            client.log("Added traffics")
             # client.set_user_agents(self.__user_agents)
             # client.log("Added user-agents")
             # client.set_proxies(self.__proxies)
             # client.log("Added proxies")
             self.__clients.append(client)
             client.setup_driver()
+        for i in range(0, 5):
+            if i < 4:
+                self.__clients[i].set_traffics(search_traffics)
+            else:
+                self.__clients[i].set_traffics(direct_traffics)
         for client in self.__clients:
             thread = threading.Thread(target=self.work, args=(client,))
             thread.start()
