@@ -332,6 +332,7 @@ class Client:
         self.__options.binary_location = self.__exe_file_location
         self.set_driver(webdriver.Chrome(options=self.__options, seleniumwire_options=seleniumwire_options))
         self.__driver.maximize_window()
+        self.__driver.set_page_load_timeout(600)
         self.__driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         if self.__languages is not None:
             selenium_stealth.stealth(
@@ -392,8 +393,8 @@ class Client:
         self.handle_internal_links(traffic)
 
     def __generate_traffic_search(self, traffic: Traffic):
-        self.__driver.get('https://terusvn.com/')
-        self.handle_scroll(traffic)
+        # self.__driver.get('https://terusvn.com/')
+        # self.handle_scroll(traffic)
         self.__driver.get("https://www.google.com")
         # while self.get_status() not in [200, 201, 202, 301, 302] and len(self.__proxies) > 0:
         #     new_proxy = random.choice(self.__proxies)
@@ -435,7 +436,7 @@ class Client:
         if len(search_box) == 0:
             search_box = self.__driver.find_elements(By.CSS_SELECTOR, "input:is([name='q']):not([type='hidden'])")
         if len(search_box) > 0:
-            action.click(search_box[0]).pause(1).send_keys(traffic.get_keyword()).pause(2).send_keys(Keys.ENTER).pause(3).perform()
+            action.click(search_box[0]).pause(1).click(search_box[0]).send_keys(traffic.get_keyword()).pause(2).send_keys(Keys.ENTER).pause(3).perform()
             is_captcha = self.handle_recaptcha(traffic)
             if traffic.is_mobile():
                 while len(self.__driver.find_elements(By.CSS_SELECTOR, "a[aria-label='Kết quả tìm kiếm khác']")) == 0:
@@ -448,8 +449,13 @@ class Client:
                     show_more = self.__driver.find_elements(By.CSS_SELECTOR, "a[aria-label='Kết quả tìm kiếm khác']")
                     target_elements = self.__driver.find_elements(By.CSS_SELECTOR, f"a[href='{traffic.get_url()}'] div[role='heading']")
             else:
+                wait = 0
                 while len(self.__driver.find_elements(By.CSS_SELECTOR, "#botstuff")) == 0:
-                    time.sleep(1)
+                    if wait > 300:
+                        self.__generate_traffic_search(traffic)
+                        break
+                    wait += 1
+                    time.sleep(wait)
                 current_page = 1
                 target_elements = self.__driver.find_elements(By.CSS_SELECTOR, f"a[href='{traffic.get_url()}'] h3")
                 while len(target_elements) == 0 and current_page < 5:

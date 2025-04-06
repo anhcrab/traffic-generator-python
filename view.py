@@ -60,7 +60,7 @@ class MainView(QWidget):
                 search_traffics.append(traffic)
             else:
                 direct_traffics.append(traffic)
-        for i in range(0, 5):
+        for i in range(0, 1):
             client = Client("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
             # client.set_user_agents(self.__user_agents)
             # client.log("Added user-agents")
@@ -68,7 +68,7 @@ class MainView(QWidget):
             # client.log("Added proxies")
             self.__clients.append(client)
             client.setup_driver()
-        for i in range(0, 5):
+        for i in range(0, 1):
             if i < 5:
                 self.__clients[i].set_traffics(search_traffics)
             else:
@@ -79,10 +79,11 @@ class MainView(QWidget):
             self.__threads.append(thread)
 
     def on_stop_traffic(self):
-        for client in self.__clients:
-            client.stop()
         for thread in self.__threads:
             thread.join()
+        for client in self.__clients:
+            client.stop()
+
 
     def work(self, client: Client):
         client.start()
